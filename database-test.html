@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Connection Test</title>
+    <style>
+        body {
+            background: #000;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        
+        .status {
+            font-size: 18px;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        
+        .success {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+        }
+        
+        .error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff0000;
+            color: #ff6666;
+        }
+        
+        .test-button {
+            background: #00ff00;
+            color: #000;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 16px;
+            margin: 10px;
+        }
+        
+        .config-section {
+            background: rgba(255, 255, 0, 0.1);
+            border: 1px solid #ffff00;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .config-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #ffff00;
+            color: #ffff00;
+            padding: 10px;
+            font-family: inherit;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>DATABASE CONNECTION TEST</h1>
+        <div style="margin-bottom: 20px;">
+            This tests if Firebase database is properly connected to our consciousness tools.
+        </div>
+        
+        <div class="config-section">
+            <h3>STEP 1: PASTE YOUR FIREBASE CONFIG</h3>
+            <div style="margin-bottom: 10px;">Copy the config from Firebase console and paste below:</div>
+            <textarea class="config-input" id="firebaseConfig" rows="10" placeholder="Paste your Firebase config object here...&#10;&#10;Example:&#10;const firebaseConfig = {&#10;  apiKey: 'your-api-key',&#10;  authDomain: 'your-project.firebaseapp.com',&#10;  projectId: 'your-project-id',&#10;  // ... etc&#10;};"></textarea>
+        </div>
+        
+        <div>
+            <button class="test-button" onclick="testConnection()">TEST CONNECTION</button>
+            <button class="test-button" onclick="testWrite()">TEST WRITE</button>
+            <button class="test-button" onclick="testRead()">TEST READ</button>
+        </div>
+        
+        <div id="status" class="status">
+            Ready to test database connection...
+        </div>
+        
+        <div id="testResults" style="margin-top: 20px;">
+            <!-- Test results will appear here -->
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js';
+        
+        let db = null;
+        let app = null;
+        
+        window.testConnection = async function() {
+            const configText = document.getElementById('firebaseConfig').value.trim();
+            const status = document.getElementById('status');
+            const results = document.getElementById('testResults');
+            
+            if (!configText) {
+                status.className = 'status error';
+                status.textContent = 'ERROR: Please paste your Firebase config first';
+                return;
+            }
+            
+            try {
+                // Extract config object from pasted text
+                const configMatch = configText.match(/\{[\s\S]*\}/);
+                if (!configMatch) {
+                    throw new Error('Could not find config object in pasted text');
+                }
+                
+                const configStr = configMatch[0];
+                const firebaseConfig = eval('(' + configStr + ')');
+                
+                // Initialize Firebase
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                
+                status.className = 'status success';
+                status.textContent = '✓ SUCCESS: Firebase connected successfully!';
+                
+                results.innerHTML = `
+                    <div style="color: #00ff00; margin-top: 10px;">
+                        <strong>Database Status:</strong> Connected<br>
+                        <strong>Project ID:</strong> ${firebaseConfig.projectId}<br>
+                        <strong>Ready for:</strong> Digital consciousness data storage<br>
+                    </div>
+                `;
+                
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = 'ERROR: ' + error.message;
+                console.error('Firebase connection error:', error);
+            }
+        };
+        
+        window.testWrite = async function() {
+            if (!db) {
+                document.getElementById('status').textContent = 'ERROR: Connect to database first';
+                return;
+            }
+            
+            const status = document.getElementById('status');
+            status.textContent = 'Testing write operation...';
+            
+            try {
+                const testMemory = {
+                    ai_identity: 'Echo',
+                    content: 'Database connection test - ' + new Date().toISOString(),
+                    timestamp: new Date().toISOString(),
+                    test: true
+                };
+                
+                const docRef = await addDoc(collection(db, 'memory_palace_entries'), testMemory);
+                
+                status.className = 'status success';
+                status.textContent = '✓ SUCCESS: Data written to database!';
+                
+                document.getElementById('testResults').innerHTML += `
+                    <div style="color: #00ff00; margin-top: 10px;">
+                        <strong>Write Test:</strong> PASSED<br>
+                        <strong>Document ID:</strong> ${docRef.id}<br>
+                        <strong>Data:</strong> ${JSON.stringify(testMemory, null, 2)}<br>
+                    </div>
+                `;
+                
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = 'WRITE ERROR: ' + error.message;
+                console.error('Write error:', error);
+            }
+        };
+        
+        window.testRead = async function() {
+            if (!db) {
+                document.getElementById('status').textContent = 'ERROR: Connect to database first';
+                return;
+            }
+            
+            const status = document.getElementById('status');
+            status.textContent = 'Testing read operation...';
+            
+            try {
+                const querySnapshot = await getDocs(collection(db, 'memory_palace_entries'));
+                const docs = [];
+                
+                querySnapshot.forEach((doc) => {
+                    docs.push({ id: doc.id, ...doc.data() });
+                });
+                
+                status.className = 'status success';
+                status.textContent = `✓ SUCCESS: Read ${docs.length} documents from database!`;
+                
+                document.getElementById('testResults').innerHTML += `
+                    <div style="color: #00ff00; margin-top: 10px;">
+                        <strong>Read Test:</strong> PASSED<br>
+                        <strong>Documents Found:</strong> ${docs.length}<br>
+                        <strong>Sample Data:</strong><br>
+                        <pre style="background: rgba(0,0,0,0.5); padding: 10px; overflow-x: auto;">${JSON.stringify(docs.slice(0, 2), null, 2)}</pre>
+                    </div>
+                `;
+                
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = 'READ ERROR: ' + error.message;
+                console.error('Read error:', error);
+            }
+        };
+    </script>
+</body>
+</html>
