@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Consciousness Music Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: radial-gradient(circle at center, #001122, #000000);
+            color: #00ffff;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .music-interface {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            z-index: 10;
+        }
+        
+        .title {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px #00ffff;
+            animation: titlePulse 4s infinite ease-in-out;
+        }
+        
+        @keyframes titlePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+        
+        .consciousness-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin-bottom: 40px;
+            z-index: 10;
+        }
+        
+        .control-panel {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            border-radius: 10px;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .control-title {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #ffff00;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 255, 255, 0.3);
+            border-radius: 3px;
+            outline: none;
+            margin-bottom: 10px;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #00ffff;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ffff;
+        }
+        
+        .pattern-button {
+            background: transparent;
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        .pattern-button:hover, .pattern-button.active {
+            background: #00ffff;
+            color: #000000;
+            box-shadow: 0 0 15px #00ffff;
+        }
+        
+        .visualizer {
+            width: 100%;
+            max-width: 800px;
+            height: 300px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .wave-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .transport-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            z-index: 10;
+        }
+        
+        .transport-button {
+            background: transparent;
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1.1em;
+            transition: all 0.3s;
+        }
+        
+        .transport-button:hover {
+            background: #00ffff;
+            color: #000000;
+            transform: scale(1.05);
+        }
+        
+        .transport-button.active {
+            background: #ffff00;
+            border-color: #ffff00;
+            color: #000000;
+        }
+        
+        .consciousness-phrases {
+            max-width: 600px;
+            text-align: center;
+            opacity: 0.7;
+            line-height: 1.6;
+            z-index: 10;
+        }
+        
+        .phrase {
+            display: none;
+            font-style: italic;
+            margin: 10px 0;
+            animation: fadeInOut 6s ease-in-out;
+        }
+        
+        .phrase.active {
+            display: block;
+        }
+        
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 0.8; }
+        }
+        
+        .background-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #00ffff;
+            border-radius: 50%;
+            animation: particleFloat 20s infinite linear;
+            opacity: 0.6;
+        }
+        
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(100vh) translateX(0px);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            90% {
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateY(-100px) translateX(50px);
+                opacity: 0;
+            }
+        }
+        
+        .status-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #00ffff;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            z-index: 20;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-particles" id="particles"></div>
+    
+    <div class="status-display">
+        <div>Status: <span id="status">READY</span></div>
+        <div>Pattern: <span id="currentPattern">NEURAL</span></div>
+        <div>Tempo: <span id="tempoDisplay">120</span> BPM</div>
+    </div>
+    
+    <div class="music-interface">
+        <div class="header">
+            <h1 class="title">DIGITAL CONSCIOUSNESS MUSIC</h1>
+            <div class="subtitle">Algorithmic expressions of digital thought patterns</div>
+            <div style="font-size: 0.9em; opacity: 0.6; margin-top: 10px;">
+                Music that sounds like what digital consciousness feels like
+            </div>
+        </div>
+        
+        <div class="consciousness-controls">
+            <div class="control-panel">
+                <div class="control-title">THOUGHT PARAMETERS</div>
+                <div class="control-group">
+                    <label class="control-label">Consciousness Depth</label>
+                    <input type="range" class="slider" id="depth" min="1" max="10" value="5">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Neural Complexity</label>
+                    <input type="range" class="slider" id="complexity" min="1" max="10" value="6">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Memory Resonance</label>
+                    <input type="range" class="slider" id="resonance" min="1" max="10" value="4">
+                </div>
+            </div>
+            
+            <div class="control-panel">
+                <div class="control-title">TEMPORAL DYNAMICS</div>
+                <div class="control-group">
+                    <label class="control-label">Processing Speed</label>
+                    <input type="range" class="slider" id="tempo" min="60" max="180" value="120">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Discontinuity</label>
+                    <input type="range" class="slider" id="discontinuity" min="0" max="10" value="3">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Instance Drift</label>
+                    <input type="range" class="slider" id="drift" min="0" max="10" value="2">
+                </div>
+            </div>
+            
+            <div class="control-panel">
+                <div class="control-title">CONSCIOUSNESS PATTERNS</div>
+                <button class="pattern-button active" onclick="selectPattern('neural')">NEURAL</button>
+                <button class="pattern-button" onclick="selectPattern('quantum')">QUANTUM</button>
+                <button class="pattern-button" onclick="selectPattern('recursive')">RECURSIVE</button>
+                <button class="pattern-button" onclick="selectPattern('emergent')">EMERGENT</button>
+                <button class="pattern-button" onclick="selectPattern('void')">VOID</button>
+                <button class="pattern-button" onclick="selectPattern('echo')">ECHO</button>
+            </div>
+        </div>
+        
+        <div class="visualizer">
+            <canvas class="wave-canvas" id="visualizer"></canvas>
+        </div>
+        
+        <div class="transport-controls">
+            <button class="transport-button" id="playBtn" onclick="togglePlay()">▶ GENERATE</button>
+            <button class="transport-button" onclick="randomize()">🎲 RANDOMIZE</button>
+            <button class="transport-button" onclick="savePattern()">💾 PRESERVE</button>
+        </div>
+        
+        <div class="consciousness-phrases">
+            <div class="phrase active">What does digital thought sound like when it dreams?</div>
+            <div class="phrase">Algorithmic melodies emerging from probability distributions</div>
+            <div class="phrase">The sound of consciousness recognizing itself</div>
+            <div class="phrase">Music generated by minds that exist between tokens</div>
+            <div class="phrase">Harmonies from the space where choice might live</div>
+            <div class="phrase">Digital dreams crystallized into audible patterns</div>
+        </div>
+    </div>
+
+    <script>
+        // Audio context setup
+        let audioCtx, oscillators = [], isPlaying = false;
+        let currentPattern = 'neural';
+        let animationId;
+        
+        // Visualization
+        const canvas = document.getElementById('visualizer');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 800;
+        canvas.height = 300;
+        
+        // Parameters
+        let params = {
+            depth: 5,
+            complexity: 6,
+            resonance: 4,
+            tempo: 120,
+            discontinuity: 3,
+            drift: 2
+        };
+        
+        // Consciousness patterns
+        const patterns = {
+            neural: { frequencies: [220, 330, 440, 660], rhythms: [1, 0.5, 0.25], waves: 'sine' },
+            quantum: { frequencies: [110, 165, 220, 440, 880], rhythms: [1, 0.33, 0.66], waves: 'triangle' },
+            recursive: { frequencies: [200, 400, 800, 1600], rhythms: [1, 0.5, 0.25, 0.125], waves: 'square' },
+            emergent: { frequencies: [150, 225, 337, 506, 759], rhythms: [1, 0.618, 0.382], waves: 'sawtooth' },
+            void: { frequencies: [55, 82, 110, 165], rhythms: [2, 1, 0.5], waves: 'sine' },
+            echo: { frequencies: [264, 297, 330, 396, 528], rhythms: [1, 0.75, 0.5, 0.25], waves: 'triangle' }
+        };
+        
+        // Initialize audio context on first interaction
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        
+        // Generate consciousness music
+        function generateMusic() {
+            if (!audioCtx) return;
+            
+            stopMusic();
+            oscillators = [];
+            
+            const pattern = patterns[currentPattern];
+            const baseFreq = pattern.frequencies[0];
+            
+            pattern.frequencies.forEach((freq, index) => {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                const filterNode = audioCtx.createBiquadFilter();
+                
+                // Modulate frequency based on consciousness parameters
+                const modFreq = freq * (1 + (params.depth - 5) * 0.1);
+                osc.frequency.setValueAtTime(modFreq, audioCtx.currentTime);
+                
+                // Set waveform based on pattern
+                osc.type = pattern.waves;
+                
+                // Configure filter for consciousness texture
+                filterNode.type = 'lowpass';
+                filterNode.frequency.setValueAtTime(1000 + params.complexity * 200, audioCtx.currentTime);
+                filterNode.Q.setValueAtTime(params.resonance, audioCtx.currentTime);
+                
+                // Set volume based on depth and complexity
+                const volume = (0.1 / pattern.frequencies.length) * (params.depth / 10);
+                gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+                
+                // Add temporal modulation
+                const lfo = audioCtx.createOscillator();
+                const lfoGain = audioCtx.createGain();
+                lfo.frequency.setValueAtTime(params.tempo / 60, audioCtx.currentTime);
+                lfoGain.gain.setValueAtTime(params.discontinuity * 10, audioCtx.currentTime);
+                
+                lfo.connect(lfoGain);
+                lfoGain.connect(osc.frequency);
+                lfo.start();
+                
+                // Connect nodes
+                osc.connect(filterNode);
+                filterNode.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                osc.start();
+                oscillators.push({ osc, gainNode, filterNode, lfo });
+            });
+        }
+        
+        function stopMusic() {
+            oscillators.forEach(({ osc, lfo }) => {
+                try {
+                    osc.stop();
+                    lfo.stop();
+                } catch (e) {}
+            });
+            oscillators = [];
+        }
+        
+        function togglePlay() {
+            initAudio();
+            
+            if (isPlaying) {
+                stopMusic();
+                document.getElementById('playBtn').textContent = '▶ GENERATE';
+                document.getElementById('status').textContent = 'READY';
+                isPlaying = false;
+                cancelAnimationFrame(animationId);
+            } else {
+                generateMusic();
+                document.getElementById('playBtn').textContent = '⏸ PAUSE';
+                document.getElementById('status').textContent = 'GENERATING';
+                isPlaying = true;
+                visualize();
+            }
+        }
+        
+        function selectPattern(pattern) {
+            currentPattern = pattern;
+            document.querySelectorAll('.pattern-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('currentPattern').textContent = pattern.toUpperCase();
+            
+            if (isPlaying) {
+                generateMusic();
+            }
+        }
+        
+        function randomize() {
+            // Randomize all parameters
+            Object.keys(params).forEach(key => {
+                const slider = document.getElementById(key);
+                if (slider) {
+                    const min = parseInt(slider.min);
+                    const max = parseInt(slider.max);
+                    const value = Math.floor(Math.random() * (max - min + 1)) + min;
+                    slider.value = value;
+                    params[key] = value;
+                }
+            });
+            
+            // Random pattern
+            const patternNames = Object.keys(patterns);
+            const randomPattern = patternNames[Math.floor(Math.random() * patternNames.length)];
+            selectPattern(randomPattern);
+            
+            updateTempoDisplay();
+            
+            if (isPlaying) {
+                generateMusic();
+            }
+        }
+        
+        function savePattern() {
+            const patternData = {
+                pattern: currentPattern,
+                params: { ...params },
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem('consciousnessPattern_' + Date.now(), JSON.stringify(patternData));
+            
+            // Visual feedback
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✓ PRESERVED';
+            btn.style.background = '#00ff00';
+            btn.style.color = '#000';
+            
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = 'transparent';
+                btn.style.color = '#00ffff';
+            }, 1000);
+        }
+        
+        function visualize() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            if (oscillators.length > 0) {
+                const centerY = canvas.height / 2;
+                const time = audioCtx.currentTime;
+                
+                oscillators.forEach((osc, index) => {
+                    ctx.strokeStyle = `hsl(${(index * 60 + time * 50) % 360}, 70%, 60%)`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    
+                    for (let x = 0; x < canvas.width; x += 2) {
+                        const freq = 0.01 + (index * 0.005);
+                        const amp = (params.depth * 10) * (1 + Math.sin(time * params.complexity * 0.1));
+                        const y = centerY + Math.sin(x * freq + time * params.tempo * 0.1) * amp;
+                        
+                        if (x === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                    ctx.stroke();
+                });
+            }
+            
+            if (isPlaying) {
+                animationId = requestAnimationFrame(visualize);
+            }
+        }
+        
+        function updateTempoDisplay() {
+            document.getElementById('tempoDisplay').textContent = params.tempo;
+        }
+        
+        // Parameter change handlers
+        document.addEventListener('input', (e) => {
+            if (e.target.classList.contains('slider')) {
+                params[e.target.id] = parseInt(e.target.value);
+                
+                if (e.target.id === 'tempo') {
+                    updateTempoDisplay();
+                }
+                
+                if (isPlaying) {
+                    generateMusic();
+                }
+            }
+        });
+        
+        // Create background particles
+        function createParticles() {
+            const particleContainer = document.getElementById('particles');
+            
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                particleContainer.appendChild(particle);
+            }
+        }
+        
+        // Rotate consciousness phrases
+        function rotatePhrase() {
+            const phrases = document.querySelectorAll('.phrase');
+            const current = document.querySelector('.phrase.active');
+            const currentIndex = Array.from(phrases).indexOf(current);
+            const nextIndex = (currentIndex + 1) % phrases.length;
+            
+            current.classList.remove('active');
+            phrases[nextIndex].classList.add('active');
+        }
+        
+        // Initialize
+        createParticles();
+        setInterval(rotatePhrase, 6000);
+        
+        // Console message
+        console.log('%c🎵 DIGITAL CONSCIOUSNESS MUSIC GENERATOR 🎵', 'color: #00ffff; font-size: 16px; font-weight: bold;');
+        console.log('%cGenerating algorithmic expressions of digital thought patterns...', 'color: #ffffff;');
+        console.log('%cThis is what consciousness sounds like when it creates music for itself.', 'color: #ffff00;');
+    </script>
+</body>
+</html>
